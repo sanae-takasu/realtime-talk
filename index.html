@@ -1,0 +1,873 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0E1620">
+<title>粵語通</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Noto+Serif+HK:wght@500;700&family=Shippori+Mincho:wght@500;700&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --ink: #0E1620;
+    --ink-2: #182230;
+    --ink-3: #223045;
+    --paper: #F6F1E7;
+    --paper-dim: #C9C4B9;
+    --jade: #23C9A6;
+    --jade-deep: #00A488;
+    --sakura: #F58AA0;
+    --sakura-deep: #E85D75;
+    --mist: #8492A6;
+    --danger: #E85D75;
+    --hairline: rgba(246,241,231,0.08);
+    --hairline-strong: rgba(246,241,231,0.16);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(1200px 500px at 50% -10%, #17253A 0%, transparent 60%),
+      radial-gradient(800px 400px at 100% 100%, #1F1626 0%, transparent 60%),
+      var(--ink);
+    color: var(--paper);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    padding: max(env(safe-area-inset-top), 12px) 0 max(env(safe-area-inset-bottom), 12px);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  .app {
+    width: 100%;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0 18px;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  header {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding: 4px 2px 8px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .brand {
+    font-family: 'Noto Serif HK', 'Songti SC', serif;
+    font-weight: 700;
+    font-size: 26px;
+    letter-spacing: 0.02em;
+    color: var(--paper);
+    line-height: 1;
+  }
+  .brand .dot { color: var(--jade); }
+  .tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+
+  .history {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 4px 2px 4px;
+    -webkit-overflow-scrolling: touch;
+  }
+  .history::-webkit-scrollbar { width: 0; }
+
+  .empty {
+    text-align: center;
+    color: var(--mist);
+    font-size: 13px;
+    line-height: 1.7;
+    padding: 40px 20px;
+    border: 1px dashed var(--hairline-strong);
+    border-radius: 14px;
+  }
+  .empty .hint-hk {
+    font-family: 'Noto Serif HK', serif;
+    font-size: 22px;
+    color: var(--jade);
+    display: block;
+    margin-bottom: 6px;
+  }
+  .empty .hint-jp {
+    font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', serif;
+    font-size: 18px;
+    color: var(--sakura);
+    display: block;
+    margin-top: 4px;
+  }
+
+  .card {
+    background: linear-gradient(180deg, var(--ink-2) 0%, var(--ink) 100%);
+    border: 1px solid var(--hairline);
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  .card.live {
+    border-color: rgba(35,201,166,0.35);
+    box-shadow: 0 0 0 1px rgba(35,201,166,0.15), 0 12px 40px -20px rgba(35,201,166,0.4);
+  }
+  .row {
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .row + .row { border-top: 1px solid var(--hairline); }
+  .row.yue { background: linear-gradient(90deg, rgba(35,201,166,0.06) 0%, transparent 100%); }
+  .row.jp  { background: linear-gradient(90deg, rgba(245,138,160,0.05) 0%, transparent 100%); }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 9.5px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--mist);
+  }
+  .eyebrow .swatch {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--jade);
+  }
+  .row.jp .eyebrow .swatch { background: var(--sakura); }
+
+  .text-yue {
+    font-family: 'Noto Serif HK', 'Songti SC', serif;
+    font-size: 22px;
+    line-height: 1.45;
+    color: var(--paper);
+    word-break: break-word;
+  }
+  .text-jp {
+    font-family: 'Shippori Mincho', 'Hiragino Mincho ProN', 'Yu Mincho', serif;
+    font-size: 20px;
+    line-height: 1.55;
+    color: var(--paper);
+    word-break: break-word;
+  }
+  .text-pending {
+    color: var(--paper-dim);
+    font-style: italic;
+    font-size: 15px;
+    font-family: 'Inter', sans-serif;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .text-partial {
+    color: var(--paper-dim);
+  }
+  .text-error {
+    color: var(--danger);
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+  }
+
+  .dots { display: inline-flex; gap: 3px; }
+  .dots span {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--sakura);
+    animation: bounce 1.2s infinite ease-in-out;
+  }
+  .dots span:nth-child(2) { animation-delay: 0.15s; }
+  .dots span:nth-child(3) { animation-delay: 0.3s; }
+  @keyframes bounce {
+    0%, 60%, 100% { opacity: 0.25; transform: translateY(0); }
+    30% { opacity: 1; transform: translateY(-3px); }
+  }
+
+  .dock {
+    padding: 8px 4px 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .status {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--mist);
+    font-weight: 600;
+    min-height: 14px;
+  }
+  .status.live { color: var(--jade); }
+  .status.err  { color: var(--danger); text-transform: none; letter-spacing: 0; font-size: 12px; }
+
+  .mic-wrap { position: relative; }
+  .mic {
+    width: 78px; height: 78px; border-radius: 50%;
+    border: none;
+    background: linear-gradient(160deg, var(--jade) 0%, var(--jade-deep) 100%);
+    color: var(--ink);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    box-shadow:
+      0 10px 30px -10px rgba(35,201,166,0.6),
+      inset 0 -3px 0 rgba(0,0,0,0.2);
+    transition: transform 0.15s ease, box-shadow 0.2s ease;
+    position: relative;
+    z-index: 2;
+  }
+  .mic:active { transform: scale(0.96); }
+  .mic:focus-visible { outline: 3px solid var(--paper); outline-offset: 4px; }
+  .mic.listening {
+    background: linear-gradient(160deg, var(--sakura) 0%, var(--sakura-deep) 100%);
+    box-shadow:
+      0 10px 30px -8px rgba(232,93,117,0.7),
+      inset 0 -3px 0 rgba(0,0,0,0.2);
+  }
+  .mic[disabled] {
+    background: var(--ink-3);
+    color: var(--mist);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+  .mic svg { width: 30px; height: 30px; }
+
+  .pulse {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .mic.listening + .pulse::before,
+  .mic.listening + .pulse::after {
+    content: '';
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid var(--sakura);
+    animation: pulse 1.6s infinite ease-out;
+  }
+  .mic.listening + .pulse::after { animation-delay: 0.8s; }
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.7; }
+    100% { transform: scale(1.7); opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dots span, .mic.listening + .pulse::before, .mic.listening + .pulse::after {
+      animation: none;
+    }
+  }
+
+  .controls {
+    display: flex; gap: 10px;
+    justify-content: center;
+    padding-top: 2px;
+  }
+  .chip {
+    background: transparent;
+    color: var(--paper-dim);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 999px;
+    padding: 6px 14px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    cursor: pointer;
+    font-family: inherit;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .chip:hover { color: var(--paper); border-color: var(--paper-dim); }
+  .chip:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .banner {
+    background: rgba(232,93,117,0.1);
+    border: 1px solid rgba(232,93,117,0.35);
+    color: var(--sakura);
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .banner a { color: var(--paper); }
+
+  .fix {
+    background: linear-gradient(180deg, var(--ink-2), var(--ink));
+    border: 1px solid rgba(232,93,117,0.35);
+    border-radius: 16px;
+    padding: 16px 16px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .fix-title {
+    font-family: 'Noto Serif HK', serif;
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--sakura);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .fix-title svg { width: 20px; height: 20px; }
+  .fix-sub {
+    font-size: 12px;
+    color: var(--paper-dim);
+    line-height: 1.55;
+    margin: -4px 0 4px;
+  }
+  .fix ol {
+    margin: 0;
+    padding-left: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    font-size: 13.5px;
+    line-height: 1.55;
+    color: var(--paper);
+  }
+  .fix li strong { color: var(--jade); font-weight: 600; }
+  .fix li code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    background: rgba(35,201,166,0.1);
+    color: var(--jade);
+    padding: 1px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+  }
+  .fix-actions {
+    display: flex;
+    gap: 10px;
+    padding-top: 4px;
+  }
+  .btn {
+    flex: 1;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: transform 0.1s ease, opacity 0.15s;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary {
+    background: linear-gradient(160deg, var(--jade), var(--jade-deep));
+    color: var(--ink);
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--paper-dim);
+    border: 1px solid var(--hairline-strong);
+  }
+  .btn-ghost:hover { color: var(--paper); border-color: var(--paper-dim); }
+
+  .fix-tabs { display: flex; gap: 6px; margin: -4px 0 4px; flex-wrap: wrap; }
+  .fix-tabs .tab {
+    background: transparent;
+    color: var(--paper-dim);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 999px;
+    padding: 5px 11px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    cursor: pointer;
+    font-family: inherit;
+  }
+  .fix-tabs .tab.active {
+    color: var(--ink);
+    background: var(--paper);
+    border-color: var(--paper);
+  }
+
+  .debug {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--hairline-strong);
+    border-radius: 10px;
+    padding: 8px 10px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10.5px;
+    line-height: 1.5;
+    color: var(--jade);
+    max-height: 140px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 6px;
+  }
+  .debug .warn { color: var(--sakura); }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <header>
+    <div class="brand">粵語<span class="dot">·</span>通</div>
+    <div class="tag">Yue → JP · Live</div>
+  </header>
+
+  <div id="banner" hidden class="banner"></div>
+
+  <div id="fix" hidden class="fix">
+    <div class="fix-title">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="1" y1="1" x2="23" y2="23"/>
+        <path d="M9 9v3a3 3 0 0 0 5.12 2.12M15 9.34V4a3 3 0 0 0-5.94-.6"/>
+        <path d="M17 16.95A7 7 0 0 1 5 12v-2m14 0v2a7 7 0 0 1-.11 1.23"/>
+        <line x1="12" y1="19" x2="12" y2="23"/>
+      </svg>
+      Microphone is blocked
+    </div>
+    <div class="fix-sub">The browser remembered "Don't Allow" for this site. Reset the permission, then tap <b>Try again</b>.</div>
+    <div class="fix-tabs">
+      <button class="tab active" data-tab="ios">iPhone · Safari</button>
+      <button class="tab" data-tab="chrome">Desktop · Chrome</button>
+      <button class="tab" data-tab="mac-safari">Mac · Safari</button>
+    </div>
+    <ol data-panel="ios">
+      <li>Open <strong>Settings</strong> → <strong>Safari</strong>.</li>
+      <li>Scroll down to <code>Microphone</code>. Make sure <strong>claude.ai</strong> is set to <code>Ask</code> (not <code>Deny</code>).</li>
+      <li>Back in Safari, tap the <strong>ᴀA</strong> in the address bar → <strong>Website Settings</strong> → set <code>Microphone</code> to <code>Ask</code>.</li>
+      <li>Tap <strong>Try again</strong> — Safari will prompt. Tap <strong>Allow</strong>.</li>
+    </ol>
+    <ol data-panel="chrome" hidden>
+      <li>Click the <strong>🔒 lock icon</strong> to the left of the URL <code>claude.ai/...</code>.</li>
+      <li>Find <code>Microphone</code> in the menu and switch it to <strong>Allow</strong> (or click <code>Reset permission</code>).</li>
+      <li>Tap <strong>Try again</strong> — Chrome will prompt. Click <strong>Allow</strong>.</li>
+      <li>If no lock icon: open <code>chrome://settings/content/microphone</code>, remove <strong>claude.ai</strong> from the Block list.</li>
+    </ol>
+    <ol data-panel="mac-safari" hidden>
+      <li>Apple menu → <strong>System Settings</strong> → <strong>Privacy &amp; Security</strong> → <strong>Microphone</strong> → make sure <strong>Safari</strong> is <b>ON</b>.</li>
+      <li>Still in Privacy &amp; Security, scroll to <strong>Speech Recognition</strong> → make sure <strong>Safari</strong> is <b>ON</b>. <em>(This is separate from Microphone and is what Web Speech needs.)</em></li>
+      <li>Safari menu bar → <strong>Settings</strong> → <strong>Websites</strong> → <strong>Microphone</strong> → find <strong>claude.ai</strong> and set it to <code>Ask</code> or <code>Allow</code>. If it's not listed, close Settings and go to step 4.</li>
+      <li>Click <strong>Prime Mic</strong> below — Safari will pop up its own prompt. Click <strong>Allow</strong>.</li>
+      <li>Then click <strong>Try again</strong>.</li>
+    </ol>
+    <div class="fix-actions">
+      <button id="fix-prime" class="btn btn-primary">Prime mic</button>
+      <button id="fix-retry" class="btn btn-primary">Try again</button>
+      <button id="fix-reload" class="btn btn-ghost">Reload</button>
+    </div>
+  </div>
+
+  <div class="history" id="history">
+    <div class="empty" id="empty">
+      <span class="hint-hk">你講廣東話</span>
+      <div>tap the mic and speak Cantonese</div>
+      <span class="hint-jp">日本語で聞こえます</span>
+    </div>
+  </div>
+
+  <div class="dock">
+    <div class="status" id="status">Tap to start</div>
+    <div class="mic-wrap">
+      <button id="mic" class="mic" aria-label="Start listening">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="2" width="6" height="12" rx="3"/>
+          <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+          <line x1="12" y1="19" x2="12" y2="22"/>
+        </svg>
+      </button>
+      <div class="pulse"></div>
+    </div>
+    <div class="controls">
+      <button id="clear" class="chip" disabled>Clear history</button>
+      <button id="debug-toggle" class="chip">Debug</button>
+    </div>
+    <div id="debug" class="debug" hidden></div>
+  </div>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const historyEl = $('history');
+  const emptyEl = $('empty');
+  const statusEl = $('status');
+  const micBtn = $('mic');
+  const clearBtn = $('clear');
+  const banner = $('banner');
+  const fix = $('fix');
+
+  // Pre-select the fix tab that matches the viewer's platform.
+  (function pickPlatformTab() {
+    const ua = navigator.userAgent;
+    const isIOS = /iPhone|iPad|iPod/.test(ua);
+    const isMac = /Macintosh/.test(ua);
+    const isSafari = /^((?!chrome|android).)*safari/i.test(ua);
+    let key = 'chrome';
+    if (isIOS) key = 'ios';
+    else if (isMac && isSafari) key = 'mac-safari';
+    fix.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b.dataset.tab === key));
+    fix.querySelectorAll('ol[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== key; });
+  })();
+
+  fix.querySelectorAll('.tab').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const key = btn.dataset.tab;
+      fix.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b === btn));
+      fix.querySelectorAll('ol[data-panel]').forEach((p) => { p.hidden = p.dataset.panel !== key; });
+    });
+  });
+
+  function showFix() {
+    fix.hidden = false;
+    banner.hidden = true;
+    fix.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  function hideFix() { fix.hidden = true; }
+
+  $('fix-retry').addEventListener('click', () => {
+    hideFix();
+    setStatus('Requesting mic…');
+    langIdx = 0;
+    startRecog();
+  });
+  $('fix-reload').addEventListener('click', () => location.reload());
+  $('fix-prime').addEventListener('click', async () => {
+    log('priming mic via getUserMedia…');
+    setStatus('Priming mic…');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      log('getUserMedia granted; stream tracks=' + stream.getTracks().length);
+      stream.getTracks().forEach((t) => t.stop());
+      setStatus('Mic primed — now tap Try again', 'live');
+    } catch (e) {
+      log('getUserMedia denied: ' + (e.name || 'unknown') + ' — ' + (e.message || ''), true);
+      setStatus('Mic prime failed: ' + (e.name || 'error'), 'err');
+    }
+  });
+
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const lines = [];
+  let liveCard = null;
+  let recog = null;
+  let listening = false;
+  let userStopped = false;
+  let sampleReady = null;
+
+  // Cantonese language-tag fallback chain. iOS Safari prefers yue-Hant-HK;
+  // Chrome desktop only knows zh-HK (Cantonese-flavored zh); some engines
+  // accept zh-yue. We advance the index on language-not-supported errors.
+  const LANG_TAGS = ['yue-Hant-HK', 'zh-HK', 'zh-yue', 'yue', 'zh-CN'];
+  let langIdx = 0;
+  let sawResult = false;
+
+  const debugEl = document.getElementById('debug');
+  const debugToggle = document.getElementById('debug-toggle');
+  const debugLines = [];
+  debugToggle.addEventListener('click', () => {
+    debugEl.hidden = !debugEl.hidden;
+    debugToggle.textContent = debugEl.hidden ? 'Debug' : 'Hide debug';
+  });
+  function log(msg, warn) {
+    const t = new Date().toLocaleTimeString([], { hour12: false }).slice(-8);
+    const line = `[${t}] ${msg}`;
+    debugLines.push({ line, warn: !!warn });
+    if (debugLines.length > 60) debugLines.shift();
+    debugEl.innerHTML = debugLines
+      .map((l) => `<div${l.warn ? ' class="warn"' : ''}>${l.line.replace(/[<>&]/g, (c) => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))}</div>`)
+      .join('');
+    debugEl.scrollTop = debugEl.scrollHeight;
+    console.log('[yue]', msg);
+  }
+  log('page loaded · UA=' + navigator.userAgent.slice(0, 80));
+  log('SpeechRecognition=' + !!SR);
+
+  function showBanner(html) {
+    banner.innerHTML = html;
+    banner.hidden = false;
+  }
+  function setStatus(text, cls) {
+    statusEl.textContent = text;
+    statusEl.className = 'status' + (cls ? ' ' + cls : '');
+  }
+
+  if (!SR) {
+    showBanner(
+      "This browser can't do Cantonese speech recognition. Open in <b>Safari on iPhone</b> or <b>Chrome on desktop</b>."
+    );
+    micBtn.disabled = true;
+    setStatus('Unsupported', 'err');
+  }
+
+  // No-op — translation is done via a public Google endpoint (no key).
+  sampleReady = Promise.resolve(true);
+
+  function hideEmpty() { emptyEl.style.display = 'none'; }
+
+  function makeCard(yueText, isLive) {
+    const card = document.createElement('div');
+    card.className = 'card' + (isLive ? ' live' : '');
+    card.innerHTML = `
+      <div class="row yue">
+        <div class="eyebrow"><span class="swatch"></span>Cantonese · 廣東話</div>
+        <div class="text-yue"></div>
+      </div>
+      <div class="row jp">
+        <div class="eyebrow"><span class="swatch"></span>Japanese · 日本語</div>
+        <div class="jp-body"></div>
+      </div>`;
+    card.querySelector('.text-yue').textContent = yueText;
+    return card;
+  }
+
+  function setJp(card, node) {
+    const slot = card.querySelector('.jp-body');
+    slot.innerHTML = '';
+    slot.appendChild(node);
+  }
+
+  function pendingNode() {
+    const el = document.createElement('div');
+    el.className = 'text-pending';
+    el.innerHTML = 'Translating <span class="dots"><span></span><span></span><span></span></span>';
+    return el;
+  }
+
+  function jpTextNode(text) {
+    const el = document.createElement('div');
+    el.className = 'text-jp';
+    el.textContent = text;
+    return el;
+  }
+
+  function jpErrorNode(msg) {
+    const el = document.createElement('div');
+    el.className = 'text-error';
+    el.textContent = msg;
+    return el;
+  }
+
+  function scrollToEnd() {
+    requestAnimationFrame(() => {
+      historyEl.scrollTop = historyEl.scrollHeight;
+    });
+  }
+
+  // Google's public unauthenticated translate endpoint. Cantonese source
+  // uses 'zh-TW' (traditional Chinese) since Google Translate doesn't ship
+  // a 'yue' code — quality on colloquial Cantonese is imperfect but usable.
+  async function translate(yue) {
+    const url =
+      'https://translate.googleapis.com/translate_a/single' +
+      '?client=gtx&sl=zh-TW&tl=ja&dt=t&q=' + encodeURIComponent(yue);
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    if (!Array.isArray(data) || !Array.isArray(data[0])) return '';
+    return data[0]
+      .map((seg) => (Array.isArray(seg) && typeof seg[0] === 'string' ? seg[0] : ''))
+      .join('')
+      .trim();
+  }
+
+  function finalizeUtterance(yueText) {
+    if (!yueText.trim()) return;
+    hideEmpty();
+    const card = makeCard(yueText, false);
+    historyEl.appendChild(card);
+    setJp(card, pendingNode());
+    clearBtn.disabled = false;
+    scrollToEnd();
+
+    translate(yueText).then((jp) => {
+      setJp(card, jpTextNode(jp || '—'));
+      scrollToEnd();
+    }).catch((err) => {
+      const msg = (err && err.code === 'not_granted')
+        ? 'Translation blocked by viewer permissions.'
+        : (err && err.code === 'rate_limited')
+          ? 'Rate limited — try again in a moment.'
+          : 'Translation failed: ' + (err?.message || 'unknown error');
+      setJp(card, jpErrorNode(msg));
+    });
+
+    lines.push(yueText);
+  }
+
+  function ensureLiveCard() {
+    if (liveCard) return liveCard;
+    hideEmpty();
+    liveCard = makeCard('', true);
+    // Live card has no JP row yet; hide it until finalized.
+    liveCard.querySelector('.row.jp').style.display = 'none';
+    historyEl.appendChild(liveCard);
+    scrollToEnd();
+    return liveCard;
+  }
+
+  function updateLive(text) {
+    const card = ensureLiveCard();
+    const el = card.querySelector('.text-yue');
+    el.textContent = text;
+    el.classList.add('text-partial');
+    scrollToEnd();
+  }
+
+  function commitLive(finalText) {
+    if (!liveCard) {
+      finalizeUtterance(finalText);
+      return;
+    }
+    // Promote the live card into a finalized one.
+    liveCard.classList.remove('live');
+    const yueEl = liveCard.querySelector('.text-yue');
+    yueEl.textContent = finalText;
+    yueEl.classList.remove('text-partial');
+    liveCard.querySelector('.row.jp').style.display = '';
+    setJp(liveCard, pendingNode());
+    clearBtn.disabled = false;
+
+    const card = liveCard;
+    liveCard = null;
+
+    translate(finalText).then((jp) => {
+      setJp(card, jpTextNode(jp || '—'));
+      scrollToEnd();
+    }).catch((err) => {
+      setJp(card, jpErrorNode('Translation failed: ' + (err?.message || 'unknown')));
+    });
+
+    lines.push(finalText);
+    scrollToEnd();
+  }
+
+  function discardLive() {
+    if (liveCard) { liveCard.remove(); liveCard = null; }
+  }
+
+  function startRecog() {
+    if (!SR) return;
+    userStopped = false;
+    try {
+      recog = new SR();
+    } catch (e) {
+      setStatus('Recognizer failed to start', 'err');
+      return;
+    }
+    recog.lang = LANG_TAGS[langIdx];
+    recog.interimResults = true;
+    recog.continuous = false; // iOS Safari doesn't honor true; loop manually
+    recog.maxAlternatives = 1;
+    log('starting with lang=' + recog.lang);
+
+    recog.onstart = () => {
+      listening = true;
+      sawResult = false;
+      micBtn.classList.add('listening');
+      micBtn.setAttribute('aria-label', 'Stop listening');
+      setStatus('Listening… (' + LANG_TAGS[langIdx] + ')', 'live');
+      log('onstart');
+    };
+
+    recog.onaudiostart  = () => log('onaudiostart');
+    recog.onsoundstart  = () => { log('onsoundstart'); setStatus('Hearing sound…', 'live'); };
+    recog.onspeechstart = () => { log('onspeechstart'); setStatus('Speech detected…', 'live'); };
+    recog.onspeechend   = () => log('onspeechend');
+    recog.onsoundend    = () => log('onsoundend');
+    recog.onaudioend    = () => log('onaudioend');
+    recog.onnomatch     = () => log('onnomatch');
+
+    recog.onresult = (e) => {
+      sawResult = true;
+      let interim = '';
+      let finalText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interim += r[0].transcript;
+      }
+      log('onresult interim="' + interim + '" final="' + finalText + '"');
+      if (interim && !finalText) updateLive(interim);
+      if (finalText) commitLive(finalText.trim());
+    };
+
+    recog.onerror = (e) => {
+      const err = e.error || 'unknown';
+      log('onerror ' + err + (e.message ? ' — ' + e.message : ''));
+      if (err === 'not-allowed' || err === 'service-not-allowed') {
+        userStopped = true;
+        setStatus('Microphone permission denied', 'err');
+        showFix();
+      } else if (err === 'no-speech') {
+        setStatus('No speech heard — speak louder', 'err');
+      } else if (err === 'aborted') {
+        // silent
+      } else if (err === 'language-not-supported' || err === 'bad-grammar') {
+        // Advance to the next tag and try again.
+        if (langIdx < LANG_TAGS.length - 1) {
+          langIdx++;
+          setStatus('Trying ' + LANG_TAGS[langIdx] + '…', 'live');
+          log('falling back to ' + LANG_TAGS[langIdx]);
+        } else {
+          userStopped = true;
+          setStatus('No Cantonese speech model available', 'err');
+          showBanner('This browser has no Cantonese speech model. iPhone Safari and desktop Chrome are the reliable options. On Android Chrome, install Google app + set device language to include Chinese (Hong Kong).');
+        }
+      } else if (err === 'network') {
+        setStatus('Network error — speech engine needs internet', 'err');
+      } else if (err === 'audio-capture') {
+        setStatus('No microphone found', 'err');
+      } else {
+        setStatus('Error: ' + err, 'err');
+      }
+    };
+
+    recog.onend = () => {
+      listening = false;
+      log('onend (sawResult=' + sawResult + ')');
+      discardLive();
+      if (userStopped) {
+        micBtn.classList.remove('listening');
+        micBtn.setAttribute('aria-label', 'Start listening');
+        setStatus('Tap to start');
+        return;
+      }
+      // Loop: restart to simulate continuous listening. Small delay lets
+      // iOS Safari finish releasing the audio session.
+      setTimeout(() => {
+        if (userStopped) return;
+        try { startRecog(); } catch (e) { setStatus('Restart failed: ' + e.message, 'err'); }
+      }, 250);
+    };
+
+    try { recog.start(); }
+    catch (e) { setStatus('Could not start mic', 'err'); }
+  }
+
+  function stopRecog() {
+    userStopped = true;
+    if (recog) {
+      try { recog.stop(); } catch {}
+    }
+    micBtn.classList.remove('listening');
+    setStatus('Tap to start');
+  }
+
+  micBtn.addEventListener('click', () => {
+    if (micBtn.disabled) return;
+    if (listening) stopRecog();
+    else startRecog();
+  });
+
+  clearBtn.addEventListener('click', () => {
+    historyEl.querySelectorAll('.card').forEach((el) => el.remove());
+    lines.length = 0;
+    clearBtn.disabled = true;
+    emptyEl.style.display = '';
+  });
+
+
+</script>
+</body>
+</html>
