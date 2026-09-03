@@ -534,7 +534,9 @@
   });
   $('fix-reload').addEventListener('click', () => location.reload());
   // "Prime Mic" is a web-only fallback (getUserMedia). Hide on native.
-  if (_isNativeEarly) $('fix-prime').hidden = true;
+  if (window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform()) {
+    $('fix-prime').hidden = true;
+  }
   $('fix-prime').addEventListener('click', async () => {
     log('priming mic via getUserMedia…');
     setStatus('Priming mic…');
