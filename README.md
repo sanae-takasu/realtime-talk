@@ -1,27 +1,47 @@
 # 粵語通 · realtime-talk
 
-Realtime Cantonese → Japanese speech translator. Single HTML file, no build.
+Realtime Cantonese → Japanese speech translator.
 
-- **Speech recognition**: Web Speech API (`yue-Hant-HK` with fallback to `zh-HK`, `zh-yue`, `yue`, `zh-CN`).
-- **Translation**: Google's public unauthenticated translate endpoint (`zh-TW` → `ja`). No API key.
-- **Host**: GitHub Pages — needs its own origin so Safari/Chrome will grant microphone access.
+- **Web**: single-file HTML at `index.html`. Uses Web Speech API + Google Translate. Hosted on GitHub Pages.
+- **iOS app**: Capacitor wrapper. Uses Apple's SFSpeechRecognizer directly (`@capacitor-community/speech-recognition`), which is much more reliable than Web Speech API in Safari.
 
-## Live URL
+The same `index.html` runs in both — it detects `window.Capacitor` at runtime and switches speech backends automatically.
 
-Once GitHub Pages is enabled (Settings → Pages → Source: **GitHub Actions**):
+## Web (GitHub Pages)
 
     https://sanae-takasu.github.io/realtime-talk/
 
-Open in iPhone Safari or desktop Chrome, tap the mic, speak Cantonese.
+## iOS app — first-time setup
 
-## Local dev
+Requires macOS with Xcode and Node 18+.
 
-    python3 -m http.server 8080
-    # open http://localhost:8080
+    git clone https://github.com/sanae-takasu/takasu/realtime-talk
+    cd realtime-talk
+    npm install
+    npx cap add ios          # scaffolds the ios/ Xcode project (first time only)
+    npm run cap:sync         # copies www/ into the Xcode project + installs pods
+    npm run cap:ios          # opens Xcode
 
-`file://` won't work — Web Speech API requires a `https://` or `http://localhost` origin.
+In Xcode:
+
+1. Connect iPhone via USB, unlock, tap **Trust**.
+2. Toolbar device selector → pick your iPhone.
+3. Select the **App** target → **Signing & Capabilities** → set your Apple ID **Team** (free Apple ID works for personal-device install).
+4. **App target → Info** — the plugin auto-adds these; verify they're present:
+   - `NSMicrophoneUsageDescription` — "This app needs the microphone to recognize your Cantonese speech."
+   - `NSSpeechRecognitionUsageDescription` — "This app uses speech recognition to transcribe Cantonese."
+5. Press **▶ Run**.
+
+First launch on the phone: allow **Microphone** and **Speech Recognition** when prompted.
+
+## Iterating
+
+    # edit index.html
+    npm run cap:sync         # copies updated web to ios/App/App/public
+    # then Cmd+R in Xcode to rerun on the phone
 
 ## Notes
 
-- Google Translate's Cantonese support is imperfect (no dedicated `yue` code — we use traditional Chinese `zh-TW`). Colloquial particles like 咗/嘅/喺度 may not always translate idiomatically. Swap in a paid LLM API for better quality.
-- Web Speech API on Android Chrome usually lacks a Cantonese model. iPhone Safari and desktop Chrome are the reliable targets.
+- The Cantonese language tag is `zh-HK` on Apple (not `yue-Hant-HK`, which is Web Speech only).
+- Google Translate uses `zh-TW` → `ja` (no dedicated `yue` code); colloquial Cantonese particles may translate unnaturally.
+- To swap to Claude/OpenAI for better translation quality, replace the `translate()` function in `index.html` and add an API key via a Supabase edge function or similar.

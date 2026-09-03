@@ -592,7 +592,12 @@
     statusEl.className = 'status' + (cls ? ' ' + cls : '');
   }
 
-  if (!SR) {
+  const _isNativeEarly =
+    typeof window !== 'undefined' &&
+    !!window.Capacitor &&
+    typeof window.Capacitor.isNativePlatform === 'function' &&
+    window.Capacitor.isNativePlatform();
+  if (!SR && !_isNativeEarly) {
     showBanner(
       "This browser can't do Cantonese speech recognition. Open in <b>Safari on iPhone</b> or <b>Chrome on desktop</b>."
     );
@@ -746,7 +751,107 @@
     if (liveCard) { liveCard.remove(); liveCard = null; }
   }
 
+  // ── Native (Capacitor) speech path ─────────────────────────────────────────
+  // On iOS/Android the Web Speech API is unreliable (permission dialogs,
+  // service-not-allowed, no continuous mode). If we're running inside a
+  // Capacitor app, use @capacitor-community/speech-recognition instead,
+  // which talks to SFSpeechRecognizer / Android's SpeechRecognizer directly.
+  const isNative =
+    typeof window !== 'undefined' &&
+    !!window.Capacitor &&
+    typeof window.Capacitor.isNativePlatform === 'function' &&
+    window.Capacitor.isNativePlatform();
+  log('runtime=' + (isNative ? 'native (Capacitor)' : 'web'));
+
+  let nativeListener = null;
+  let nativeSilenceTimer = null;
+
+  async function startRecogNative() {
+    userStopped = false;
+    sawResult = false;
+    try {
+      const SR2 = window.Capacitor.Plugins.SpeechRecognition;
+      if (!SR2) throw new Error('SpeechRecognition plugin missing');
+      const avail = await SR2.available();
+      if (!avail.available) {
+        setStatus('Speech unavailable on this device', 'err');
+        return;
+      }
+      const perm = await SR2.requestPermissions();
+      if (perm.speechRecognition !== 'granted') {
+        setStatus('Speech permission denied', 'err');
+        showFix();
+        return;
+      }
+      listening = true;
+      micBtn.classList.add('listening');
+      setStatus('Listening… (native)', 'live');
+      log('native start lang=zh-HK');
+
+      let lastMatch = '';
+      const SILENCE_MS = 1400;
+
+      const finish = async () => {
+        clearTimeout(nativeSilenceTimer);
+        try { await nativeListener?.remove(); } catch {}
+        nativeListener = null;
+        try { await SR2.stop(); } catch {}
+        listening = false;
+        micBtn.classList.remove('listening');
+        if (lastMatch.trim()) {
+          commitLive(lastMatch.trim());
+        } else {
+          discardLive();
+          setStatus('No speech heard', 'err');
+        }
+        if (!userStopped) {
+          setTimeout(() => { if (!userStopped) startRecogNative(); }, 300);
+        } else {
+          setStatus('Tap to start');
+        }
+      };
+
+      const armSilence = () => {
+        clearTimeout(nativeSilenceTimer);
+        nativeSilenceTimer = setTimeout(finish, SILENCE_MS);
+      };
+
+      nativeListener = await SR2.addListener('partialResults', (data) => {
+        if (data?.matches?.length) {
+          lastMatch = data.matches[0];
+          sawResult = true;
+          updateLive(lastMatch);
+          armSilence();
+        }
+      });
+
+      await SR2.start({
+        language: 'zh-HK',      // Apple/Android use zh-HK for Cantonese
+        maxResults: 3,
+        partialResults: true,
+        popup: false,
+      });
+    } catch (e) {
+      log('native error: ' + (e?.message || e), true);
+      setStatus('Native speech error: ' + (e?.message || 'unknown'), 'err');
+      listening = false;
+      micBtn.classList.remove('listening');
+    }
+  }
+
+  async function stopRecogNative() {
+    userStopped = true;
+    clearTimeout(nativeSilenceTimer);
+    try { await nativeListener?.remove(); } catch {}
+    nativeListener = null;
+    try { await window.Capacitor.Plugins.SpeechRecognition.stop(); } catch {}
+    listening = false;
+    micBtn.classList.remove('listening');
+    setStatus('Tap to start');
+  }
+
   function startRecog() {
+    if (isNative) return startRecogNative();
     if (!SR) return;
     userStopped = false;
     try {
@@ -846,6 +951,7 @@
   }
 
   function stopRecog() {
+    if (isNative) return stopRecogNative();
     userStopped = true;
     if (recog) {
       try { recog.stop(); } catch {}

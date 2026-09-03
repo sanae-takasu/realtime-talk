@@ -1,0 +1,11 @@
+{
+  "appId": "com.sanaetakasu.realtimetalk",
+  "appName": "粵語通",
+  "webDir": "www",
+  "server": {
+    "iosScheme": "capacitor"
+  },
+  "ios": {
+    "contentInset": "never"
+  }
+}

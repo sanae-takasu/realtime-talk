@@ -1,0 +1,19 @@
+{
+  "name": "realtime-talk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Realtime Cantonese → Japanese speech translator (Capacitor iOS + web).",
+  "scripts": {
+    "build": "mkdir -p www && cp index.html www/index.html",
+    "cap:sync": "npm run build && npx cap sync",
+    "cap:ios": "npx cap open ios",
+    "ship": "npm run cap:sync && npm run cap:ios",
+    "dev": "python3 -m http.server 8080"
+  },
+  "dependencies": {
+    "@capacitor-community/speech-recognition": "^6.0.1",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2"
+  }
+}
