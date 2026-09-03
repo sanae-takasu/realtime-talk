@@ -5,7 +5,7 @@
   "description": "Realtime Cantonese → Japanese speech translator (Capacitor iOS + web).",
   "scripts": {
     "build": "mkdir -p www && cp index.html www/index.html",
-    "cap:sync": "npm run build && npx cap sync",
+    "cap:sync": "npm run build && npx cap sync && bash scripts/patch-info-plist.sh",
     "cap:ios": "npx cap open ios",
     "ship": "npm run cap:sync && npm run cap:ios",
     "dev": "python3 -m http.server 8080"
